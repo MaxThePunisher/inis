@@ -7,14 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let stickToTouch = false;  // Флаг для сенсорного режима "следующий за пальцем"
   let initialPosition = {};
   let isTouchMove = false;   // Флаг для определения, двигался ли палец
-  let initialPinchDistance = 0;  // Начальная дистанция между пальцами при pinch-to-zoom
-  let initialElementSize = {};   // Начальный размер элемента при pinch-to-zoom
-
-  // Минимальный и максимальный размеры элементов
-  const MIN_WIDTH = 50;
-  const MIN_HEIGHT = 50;
-  const MAX_WIDTH = 500;
-  const MAX_HEIGHT = 500;
 
   // Обработчик для начала перемещения мышью
   targets.forEach(target => {
@@ -35,11 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const touch = event.touches[0];
       if (!stickToTouch) {
         startDrag(touch.clientX, touch.clientY, event.target);
-      }
-
-      // Если это жест двумя пальцами, проверяем, оба ли пальца на элементе, и запоминаем начальную дистанцию
-      if (event.touches.length === 2 && isTouchesInsideElement(event, target)) {
-        startPinchZoom(event, target);
       }
     });
 
@@ -69,24 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
     offsetY = clientY - draggingElement.getBoundingClientRect().top;
   }
 
-  // Начало pinch-to-zoom
-  function startPinchZoom(event, element) {
-    const touch1 = event.touches[0];
-    const touch2 = event.touches[1];
-
-    // Вычисляем начальное расстояние между двумя пальцами
-    initialPinchDistance = Math.hypot(
-      touch2.clientX - touch1.clientX,
-      touch2.clientY - touch1.clientY
-    );
-
-    // Запоминаем начальный размер элемента
-    initialElementSize = {
-      width: element.offsetWidth,
-      height: element.offsetHeight
-    };
-  }
-
   // Перемещение элемента мышью
   document.addEventListener('mousemove', (event) => {
     if (draggingElement && !stickToTouch) {
@@ -94,53 +63,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Перемещение элемента пальцем (сенсорный экран) и обработка pinch-to-zoom
+  // Перемещение элемента пальцем (сенсорный экран)
   document.addEventListener('touchmove', (event) => {
     if (draggingElement && event.touches.length === 1) {
       isTouchMove = true;
       const touch = event.touches[0];
       moveElement(touch.clientX, touch.clientY);
     }
-
-    // Обрабатываем изменение размера при pinch-to-zoom
-    if (event.touches.length === 2 && draggingElement && isTouchesInsideElement(event, draggingElement)) {
-      pinchZoom(event);
-    }
-
     // Второе касание прекращает перемещение (аналог клавиши Esc)
-    if (event.touches.length > 1 && event.touches.length !== 2) {
+    if (event.touches.length > 1) {
       resetPosition();
     }
   });
-
-  // Функция для изменения размера при pinch-to-zoom
-  function pinchZoom(event) {
-    const touch1 = event.touches[0];
-    const touch2 = event.touches[1];
-
-    // Текущее расстояние между пальцами
-    const currentPinchDistance = Math.hypot(
-      touch2.clientX - touch1.clientX,
-      touch2.clientY - touch1.clientY
-    );
-
-    // Определяем масштаб на основе изменения расстояния между пальцами
-    const scale = currentPinchDistance / initialPinchDistance;
-
-    // Новые размеры элемента с учётом масштаба
-    const newWidth = Math.max(
-      MIN_WIDTH,  // Ограничение минимальной ширины
-      Math.min(MAX_WIDTH, initialElementSize.width * scale)
-    );
-    const newHeight = Math.max(
-      MIN_HEIGHT, // Ограничение минимальной высоты
-      Math.min(MAX_HEIGHT, initialElementSize.height * scale)
-    );
-
-    // Применяем новые размеры к элементу
-    draggingElement.style.width = `${newWidth}px`;
-    draggingElement.style.height = `${newHeight}px`;
-  }
 
   // Перемещаем элемент в новую позицию
   function moveElement(clientX, clientY) {
@@ -203,15 +137,4 @@ document.addEventListener('DOMContentLoaded', () => {
       stickToTouch = false;
     }
   }
-
-  // Проверка, находятся ли оба пальца на элементе
-  function isTouchesInsideElement(event, element) {
-    const rect = element.getBoundingClientRect();
-    const touch1 = event.touches[0];
-    const touch2 = event.touches[1];
-
-    return (
-      touch1.clientX >= rect.left &&
-      touch1.clientX <= rect.right &&
-      touch1.clientY >= rect.top &&
-      touch1.client
+});
