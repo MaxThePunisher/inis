@@ -37,9 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
         startDrag(touch.clientX, touch.clientY, event.target);
       }
 
-      // Если это жест двумя пальцами, запоминаем начальную дистанцию
-      if (event.touches.length === 2) {
-        startPinchZoom(event);
+      // Если это жест двумя пальцами, проверяем, оба ли пальца на элементе, и запоминаем начальную дистанцию
+      if (event.touches.length === 2 && isTouchesInsideElement(event, target)) {
+        startPinchZoom(event, target);
       }
     });
 
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Начало pinch-to-zoom
-  function startPinchZoom(event) {
+  function startPinchZoom(event, element) {
     const touch1 = event.touches[0];
     const touch2 = event.touches[1];
 
@@ -82,8 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Запоминаем начальный размер элемента
     initialElementSize = {
-      width: draggingElement.offsetWidth,
-      height: draggingElement.offsetHeight
+      width: element.offsetWidth,
+      height: element.offsetHeight
     };
   }
 
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Обрабатываем изменение размера при pinch-to-zoom
-    if (event.touches.length === 2) {
+    if (event.touches.length === 2 && draggingElement && isTouchesInsideElement(event, draggingElement)) {
       pinchZoom(event);
     }
 
@@ -127,13 +127,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Определяем масштаб на основе изменения расстояния между пальцами
     const scale = currentPinchDistance / initialPinchDistance;
 
-    // Новые размеры элемента с учетом масштаба
+    // Новые размеры элемента с учётом масштаба
     const newWidth = Math.max(
-      MIN_WIDTH,
+      MIN_WIDTH,  // Ограничение минимальной ширины
       Math.min(MAX_WIDTH, initialElementSize.width * scale)
     );
     const newHeight = Math.max(
-      MIN_HEIGHT,
+      MIN_HEIGHT, // Ограничение минимальной высоты
       Math.min(MAX_HEIGHT, initialElementSize.height * scale)
     );
 
@@ -203,4 +203,15 @@ document.addEventListener('DOMContentLoaded', () => {
       stickToTouch = false;
     }
   }
-});
+
+  // Проверка, находятся ли оба пальца на элементе
+  function isTouchesInsideElement(event, element) {
+    const rect = element.getBoundingClientRect();
+    const touch1 = event.touches[0];
+    const touch2 = event.touches[1];
+
+    return (
+      touch1.clientX >= rect.left &&
+      touch1.clientX <= rect.right &&
+      touch1.clientY >= rect.top &&
+      touch1.client
