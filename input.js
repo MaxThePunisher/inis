@@ -7,6 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let stickToTouch = false;  // Флаг для сенсорного режима "следующий за пальцем"
   let initialPosition = {};
   let isTouchMove = false;   // Флаг для определения, двигался ли палец
+  let initialPinchDistance = 0;  // Начальная дистанция между пальцами при pinch-to-zoom
+  let initialElementSize = {};   // Начальный размер элемента при pinch-to-zoom
+
+  // Минимальный и максимальный размеры элементов
+  const MIN_WIDTH = 50;
+  const MIN_HEIGHT = 50;
+  const MAX_WIDTH = 500;
+  const MAX_HEIGHT = 500;
 
   // Обработчик для начала перемещения мышью
   targets.forEach(target => {
@@ -27,6 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const touch = event.touches[0];
       if (!stickToTouch) {
         startDrag(touch.clientX, touch.clientY, event.target);
+      }
+
+      // Если это жест двумя пальцами, запоминаем начальную дистанцию
+      if (event.touches.length === 2) {
+        startPinchZoom(event);
       }
     });
 
@@ -56,6 +69,24 @@ document.addEventListener('DOMContentLoaded', () => {
     offsetY = clientY - draggingElement.getBoundingClientRect().top;
   }
 
+  // Начало pinch-to-zoom
+  function startPinchZoom(event) {
+    const touch1 = event.touches[0];
+    const touch2 = event.touches[1];
+
+    // Вычисляем начальное расстояние между двумя пальцами
+    initialPinchDistance = Math.hypot(
+      touch2.clientX - touch1.clientX,
+      touch2.clientY - touch1.clientY
+    );
+
+    // Запоминаем начальный размер элемента
+    initialElementSize = {
+      width: draggingElement.offsetWidth,
+      height: draggingElement.offsetHeight
+    };
+  }
+
   // Перемещение элемента мышью
   document.addEventListener('mousemove', (event) => {
     if (draggingElement && !stickToTouch) {
@@ -63,18 +94,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Перемещение элемента пальцем (сенсорный экран)
+  // Перемещение элемента пальцем (сенсорный экран) и обработка pinch-to-zoom
   document.addEventListener('touchmove', (event) => {
     if (draggingElement && event.touches.length === 1) {
       isTouchMove = true;
       const touch = event.touches[0];
       moveElement(touch.clientX, touch.clientY);
     }
+
+    // Обрабатываем изменение размера при pinch-to-zoom
+    if (event.touches.length === 2) {
+      pinchZoom(event);
+    }
+
     // Второе касание прекращает перемещение (аналог клавиши Esc)
-    if (event.touches.length > 1) {
+    if (event.touches.length > 1 && event.touches.length !== 2) {
       resetPosition();
     }
   });
+
+  // Функция для изменения размера при pinch-to-zoom
+  function pinchZoom(event) {
+    const touch1 = event.touches[0];
+    const touch2 = event.touches[1];
+
+    // Текущее расстояние между пальцами
+    const currentPinchDistance = Math.hypot(
+      touch2.clientX - touch1.clientX,
+      touch2.clientY - touch1.clientY
+    );
+
+    // Определяем масштаб на основе изменения расстояния между пальцами
+    const scale = currentPinchDistance / initialPinchDistance;
+
+    // Новые размеры элемента с учетом масштаба
+    const newWidth = Math.max(
+      MIN_WIDTH,
+      Math.min(MAX_WIDTH, initialElementSize.width * scale)
+    );
+    const newHeight = Math.max(
+      MIN_HEIGHT,
+      Math.min(MAX_HEIGHT, initialElementSize.height * scale)
+    );
+
+    // Применяем новые размеры к элементу
+    draggingElement.style.width = `${newWidth}px`;
+    draggingElement.style.height = `${newHeight}px`;
+  }
 
   // Перемещаем элемент в новую позицию
   function moveElement(clientX, clientY) {
