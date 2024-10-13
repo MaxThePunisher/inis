@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shirt Details</title>
+    <style>
+        /* Контейнер для размещения изображения и информации */
+        .details-container {
+            display: flex;
+            justify-content: flex-start; /* Выравнивание по горизонтали */
+            align-items: center; /* Центрирование по вертикали */
+            margin: 20px;
+        }
+
+        /* Стиль для изображения футболки */
+        .shirt-image {
+            width: 300px;
+            height: 300px;
+            margin-right: 30px; /* Отступ справа от картинки */
+        }
+
+        /* Контейнер для описания, цены и кнопок */
+        .info-container {
+            max-width: 500px; /* Увеличенная ширина контейнера */
+            text-align: left; /* Выравнивание текста слева */
+            display: flex;
+            flex-direction: column; /* Вертикальное размещение элементов */
+            justify-content: center; /* Центрирование элементов по вертикали */
+        }
+
+        /* Стиль для кнопок с цветами и для кнопок Front/Back */
+        .color-btn, .view-btn {
+            margin: 5px;
+            padding: 8px; /* Уменьшенный размер кнопок */
+            font-size: 14px;
+            border: 2px solid black; /* Черная обводка */
+            cursor: pointer;
+            background-color: transparent; /* Прозрачный фон для кнопок */
+            color: black; /* Черный текст кнопок */
+            width: 80px; /* Фиксированная ширина для всех кнопок */
+            text-align: center; /* Центрирование текста */
+        }
+
+        /* Стиль для текстов */
+        h2, p {
+            margin: 10px 0;
+            text-align: left;
+        }
+
+        /* Стиль для цены */
+        .price {
+            font-size: 18px; /* Увеличенный размер шрифта для цены */
+            font-weight: bold; /* Сделаем текст жирным */
+        }
+
+        /* Контейнер для кнопок Front и Back */
+        .button-container {
+            display: flex; /* Используем Flexbox для горизонтального расположения */
+            justify-content: flex-start; /* Выравнивание по левому краю */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="shirt-details" class="details-container"></div>
+
+    <script>
+        const shirtDetailsDiv = document.getElementById('shirt-details');
+
+        // Получаем выбранную футболку из localStorage
+        const selectedShirt = JSON.parse(localStorage.getItem('selectedShirt'));
+
+        if (selectedShirt) {
+            // Создаем контейнер для изображения и названия
+            const imageContainer = document.createElement('div');
+            shirtDetailsDiv.appendChild(imageContainer);
+
+            // Отображаем имя футболки над изображением
+            const shirtName = document.createElement('h2');
+            shirtName.innerText = selectedShirt.name;
+            imageContainer.appendChild(shirtName);
+
+            // Создаем элемент для изображения
+            const shirtImage = document.createElement('img');
+            let currentColor = Object.keys(selectedShirt.colors)[0]; // Переменная для текущего цвета
+            shirtImage.src = selectedShirt.colors[currentColor].front;
+            shirtImage.alt = `${selectedShirt.name} front image`;
+            shirtImage.classList.add('shirt-image');
+            imageContainer.appendChild(shirtImage);
+
+            // Создаем контейнер для описания и кнопок
+            const infoContainer = document.createElement('div');
+            infoContainer.classList.add('info-container');
+            shirtDetailsDiv.appendChild(infoContainer);
+
+            // Отображаем цену
+            const price = document.createElement('p');
+            price.classList.add('price'); // Добавляем класс для изменения стиля
+            price.innerText = `Price: ${selectedShirt.price}`;
+            infoContainer.appendChild(price);
+
+            // Отображаем описание футболки
+            const description = document.createElement('p');
+            description.innerText = selectedShirt.description;
+            infoContainer.appendChild(description);
+
+            // Кнопки для переключения изображений
+            const viewButtonsDiv = document.createElement('div');
+            viewButtonsDiv.classList.add('button-container'); // Добавляем класс для горизонтального расположения кнопок
+
+            const frontButton = document.createElement('button');
+            frontButton.innerText = 'Front';
+            frontButton.classList.add('view-btn');
+            frontButton.onclick = function() {
+                shirtImage.src = selectedShirt.colors[currentColor].front; // Отображаем фронтальное изображение текущего цвета
+            };
+
+            const backButton = document.createElement('button');
+            backButton.innerText = 'Back';
+            backButton.classList.add('view-btn');
+            backButton.onclick = function() {
+                shirtImage.src = selectedShirt.colors[currentColor].back; // Отображаем заднее изображение текущего цвета
+            };
+
+            viewButtonsDiv.appendChild(frontButton);
+            viewButtonsDiv.appendChild(backButton);
+            infoContainer.appendChild(viewButtonsDiv);
+
+            // Генерация кнопок для выбора цветов
+            const colorsDiv = document.createElement('div');
+            const cssColors = {
+                white: '#FFFFFF',
+                blue: '#0000FF',
+                pink: '#FFC0CB',
+                red: '#FF0000',
+                green: '#008000',
+                yellow: '#FFFF00'
+            };
+
+            Object.keys(selectedShirt.colors).forEach(color => {
+                const colorBtn = document.createElement('button');
+                colorBtn.classList.add('color-btn');
+                colorBtn.style.backgroundColor = cssColors[color] || color; // Устанавливаем цвет кнопки
+                colorBtn.innerText = color;
+                colorBtn.onclick = function() {
+                    currentColor = color; // Обновляем текущий цвет
+                    shirtImage.src = selectedShirt.colors[color].front; // Отображаем фронтальное изображение выбранного цвета
+                };
+                colorsDiv.appendChild(colorBtn);
+            });
+            infoContainer.appendChild(colorsDiv);
+        } else {
+            shirtDetailsDiv.innerHTML = "<p>No shirt selected</p>";
+        }
+    </script>
+
+</body>
+</html>

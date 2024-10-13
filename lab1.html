@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shirts</title>
+    <style>
+        .shirt-item {
+            border: 1px solid black;
+            margin: 10px;
+            padding: 10px;
+            display: inline-block;
+            width: 200px;
+            text-align: center;
+            vertical-align: top;
+        }
+        .shirt-item img, .no-image {
+            width: 150px;
+            height: 150px;
+            display: block;
+            margin: 0 auto;
+        }
+        .shirt-item h3 {
+            margin: 10px 0;
+        }
+        .shirt-item button {
+            margin: 5px;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: lightgray;
+            color: #555;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Our T-Shirts</h1>
+    <div id="shirt-container"></div>
+
+    <script src="shirts.js"></script>
+    <script>
+        const shirtsContainer = document.getElementById('shirt-container');
+
+        // Проверяем, правильно ли загружены данные
+        if (shirts && Array.isArray(shirts)) {
+            // Создаем контент для каждой футболки, используя данные из файла shirts.js
+            shirts.forEach(shirt => {
+                const shirtDiv = document.createElement('div');
+                shirtDiv.classList.add('shirt-item');
+
+                const shirtName = document.createElement('h3');
+                shirtName.innerText = shirt.name;
+
+                // Подсчитываем количество доступных цветов
+                const colorCount = Object.keys(shirt.colors).length;
+                const availableColorsText = document.createElement('p');
+                availableColorsText.innerText = `Available in ${colorCount} colors`;
+
+                const quickViewButton = document.createElement('button');
+                quickViewButton.innerText = 'Quick View';
+                // Кнопка не выполняет никаких действий при нажатии
+
+                const seePageButton = document.createElement('button');
+                seePageButton.innerText = 'See Page';
+
+                // Добавляем функциональность для кнопки See Page
+                seePageButton.onclick = function() {
+                    localStorage.setItem('selectedShirt', JSON.stringify(shirt));
+                    window.location.href = 'details.html';
+                };
+
+                // Проверяем наличие изображения
+                const frontImage = shirt.colors.white ? shirt.colors.white.front : '';
+
+                if (frontImage) {
+                    const shirtImg = document.createElement('img');
+                    shirtImg.src = frontImage;
+                    shirtImg.onerror = function() {
+                        showNoImage(shirtImg, shirtDiv);
+                    };
+                    shirtDiv.appendChild(shirtImg);
+                } else {
+                    showNoImage(null, shirtDiv);
+                }
+
+                shirtDiv.appendChild(shirtName);
+                shirtDiv.appendChild(availableColorsText); // Добавляем текст о доступных цветах
+                shirtDiv.appendChild(quickViewButton); // Добавляем кнопку Quick View
+                shirtDiv.appendChild(seePageButton); // Добавляем кнопку See Page
+                shirtsContainer.appendChild(shirtDiv);
+            });
+        } else {
+            console.error("Shirts data not found or invalid format.");
+            shirtsContainer.innerHTML = "<p>Error loading shirts data.</p>";
+        }
+
+        // Функция для отображения сообщения "No image available" вместо изображения
+        function showNoImage(imageElement, parentDiv) {
+            if (imageElement) {
+                imageElement.remove(); // Удаляем картинку, если она была
+            }
+            const noImageDiv = document.createElement('div');
+            noImageDiv.classList.add('no-image');
+            noImageDiv.innerText = 'No image available';
+            parentDiv.insertBefore(noImageDiv, parentDiv.firstChild);  // Вставляем на место изображения
+        }
+    </script>
+
+</body>
+</html>
